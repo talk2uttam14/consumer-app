@@ -7,7 +7,7 @@
 import Foundation
 
 class APIManager {
-    static let sharedInstance = APIManager()
+    static let shared = APIManager()
     private init() {}
     private var session: URLSession = {
         let config = URLSessionConfiguration.default
@@ -31,7 +31,7 @@ class APIManager {
                 errorCallback(NetworkErrorLogger.noInternetConnection)
             }
             return
-        }
+        }        
         guard let url = requestModel.url else {
             DispatchQueue.main.async {
                 errorCallback(NetworkErrorLogger.invalidURL)
@@ -67,7 +67,7 @@ class APIManager {
                     self.execute(requestModel: updatedModel, successCallback: successCallback, errorCallback: errorCallback)
                 } else {
                     DispatchQueue.main.async {
-                        errorCallback(NetworkErrorLogger.requestFailed)
+                        errorCallback(error)
                     }
                 }
                 return

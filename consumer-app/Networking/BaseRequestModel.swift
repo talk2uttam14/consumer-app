@@ -24,7 +24,7 @@ class BaseRequestModel {
             let slash = (baseUrl.hasSuffix("/") || trimmedEndpoint.hasPrefix("/")) ? "" : "/"
             fullPath = baseUrl + slash + trimmedEndpoint
         }
-        var urlComponents = URLComponents(string: fullPath)
+        let urlComponents = URLComponents(string: fullPath)
         var queryItems = urlComponents?.queryItems ?? []
 
         if let params = requestParameters, !params.isEmpty {

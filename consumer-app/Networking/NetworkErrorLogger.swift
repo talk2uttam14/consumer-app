@@ -6,39 +6,37 @@
 //
 import Foundation
 
-enum NetworkErrorLogger: Error, LocalizedError {
+enum NetworkErrorLogger: LocalizedError {
     case noInternetConnection
     case invalidURL
-    case requestFailed
-    case noDataError
     case invalidResponse
+    case noDataError
+    case decodingError(Error)
+    case requestFailed
     case unauthorized
     case clientError(code: Int)
     case serverError(code: Int)
-    case decodingError(Error)
-    case unknown(Error)
-    var errorDescription: String {
+
+    var errorDescription: String? {
         switch self {
         case .noInternetConnection:
-            return "No Internet connection"
+            return "No internet connection. Check your network and try again."
         case .invalidURL:
             return "Invalid URL."
-        case .requestFailed:
-            return "Request Failed"
-        case .noDataError:
-            return "No Data Found"
         case .invalidResponse:
             return "Invalid server response."
+        case .noDataError:
+            return "No data received from server."
+        case .decodingError(let err):
+            return "Failed to decode response: \(err.localizedDescription)"
+        case .requestFailed:
+            return "Request failed. Please try again."
         case .unauthorized:
-            return "Unauthorized. Please log in again."
+            return "Unauthorized. Please login again."
         case .clientError(let code):
-            return "A client error occurred (\(code)). Please check your input and try again."
+            return "Client error (\(code))."
         case .serverError(let code):
-            return "Server error: \(code)"
-        case .decodingError(let error):
-            return "Failed to decode response: \(error.localizedDescription)"
-        case .unknown(let error):
-            return "An unknown error occurred. \(error.localizedDescription)"
+            return "Server error (\(code))."
         }
     }
 }

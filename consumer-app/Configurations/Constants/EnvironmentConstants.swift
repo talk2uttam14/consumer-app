@@ -16,7 +16,7 @@ struct EnvironmentConstants {
         switch currentEnvType {
         case .uat:
             // Replace with your actual UAT host
-            return "https://api-uat.example.com"
+            return "https://uat.globalpay.om/"
         case .prod:
             // Replace with your actual Production host
             return "https://api.example.com"

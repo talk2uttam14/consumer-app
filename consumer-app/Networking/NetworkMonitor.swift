@@ -13,8 +13,7 @@ final class NetworkMonitor: ObservableObject {
     private let pathMonitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "NetworkMonitor.Queue")
     @Published private(set) var isConnected:Bool = false
-    
-    
+
     func startMonitoring() {
         pathMonitor.start(queue: monitorQueue)
         pathMonitor.pathUpdateHandler = { [weak self] path in
