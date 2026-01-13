@@ -8,11 +8,28 @@
 import SwiftUI
 
 struct LoginView: View {
+    @EnvironmentObject var appRouter: AppRouter
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack(spacing: 20) {
+            Text("Login")
+                .font(.title)
+            
+            Button("Go to Profile") {
+                appRouter.push(.profile(.settings))
+            }
+            .buttonStyle(.borderedProminent)
+            
+            Button("Dismiss") {
+                appRouter.dismissSheet()
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding()
     }
 }
 
 #Preview {
     LoginView()
+        .environmentObject(AppRouter.shared)
 }

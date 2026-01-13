@@ -8,4 +8,6 @@
 
 struct NetworkConstants {
     static let maxRetryCount = 3
+    static let baseUrl = "https://api.example.com"
+    static let tenantEndPoint = "/tenant"
 }

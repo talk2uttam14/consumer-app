@@ -23,7 +23,7 @@ final class NetworkLogger {
     }
     /// Prints request headers in a pretty format
      static func printPrettyHeaders(from request: URLRequest) {
-        LogUtils.i("Request Headers:")
+        LogUtils.print("Request Headers:")
         if let headers = request.allHTTPHeaderFields {
             for (key, value) in headers {
                 LogUtils.print("\(key): \(value)")

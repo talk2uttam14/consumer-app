@@ -4,26 +4,43 @@
 //
 //  Created by UTTAM KUMAR DEY on 27/10/25.
 //
+//
 
 import SwiftUI
 
 struct ContentView: View {
+
+    @EnvironmentObject var router: AppRouter
+    @State private var isLoading = false
+    @State private var isSuccess = false
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
+        VStack(spacing: 16) {
             Text("Hello, world!")
-            Button("Call Api") {
-                
-                APIManager.shared.execute(requestModel: GetLanguageRequestModel()) { (response: GetLanguageResponse) in
-                    dump(response)
-                } errorCallback: { error in
-                    dump(error.localizedDescription)
-                }
-            }
+            PrimaryButton(title: "Call Api", action: {
+                callApi()
+                isLoading = true
+            }, isLoading: isLoading, isSuccess: isSuccess)
         }
         .padding()
+        .onAppear(perform: {
+            isLoading = false
+            isSuccess = false
+        })
+    }
+        
+     func callApi() {
+        APIManager.shared.execute(
+            requestModel: GetLanguageRequestModel()
+        ) { (_: GetLanguageResponse) in
+            // Navigate AFTER API success
+            isLoading = false
+            isSuccess = true
+            router.push(.home(.home))
+        } errorCallback: { error in
+            isLoading = false
+            isSuccess = false
+            print(error.localizedDescription)
+        }
     }
 }
 

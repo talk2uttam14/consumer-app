@@ -16,6 +16,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         print("✅ AppDelegate: didFinishLaunchingWithOptions called")
         NetworkMonitor.shared.startMonitoring()
+        LogUtils.setLoggingEnabled(isEnabled: true)
         return true
     }
 

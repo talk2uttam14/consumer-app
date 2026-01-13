@@ -9,11 +9,14 @@ import SwiftUI
 
 @main
 struct consumer_appApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @UIApplicationDelegateAdaptor(AppDelegate.self)
+    var appDelegate
+    @StateObject private var appRouter = AppRouter.shared
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootRouterView()
+               .environmentObject(appRouter)
         }
     }
 }

@@ -8,14 +8,16 @@
 import SwiftUI
 
 struct HomeView: View {
-    
-    private let profileRouter = ProfileRouter()
-
+    @EnvironmentObject
+    var appRouter: AppRouter
     var body: some View {
         VStack {
-            Button("Send ₹500") {
-                profileRouter.openSettings()
-            }
+            PrimaryButton(title: "Primary Button", action: {
+                dump(PrimaryButton.self)
+                appRouter.pop()
+            }, isLoading: false)
+            .padding(30)
         }
     }
 }
+
