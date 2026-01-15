@@ -6,7 +6,7 @@
 //
 
 
-public struct GetLanguageResponse: Codable {
+public struct GetLanguageResponse: Codable, Sendable {
     public let data : [InnerData]?
     public enum CodingKeys: String, CodingKey {
         case data = "data"
@@ -18,7 +18,7 @@ public struct GetLanguageResponse: Codable {
     }
 }
 
-public struct InnerData: Codable {
+public struct InnerData: Codable, Sendable {
     public let ans : String?
     public let ques : String?
 

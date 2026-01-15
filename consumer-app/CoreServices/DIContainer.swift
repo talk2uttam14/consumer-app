@@ -1,17 +1,31 @@
-
 import Foundation
 
-@MainActor
-final class DIContainer {
+// MARK: - Dependency Container Protocol
+protocol DependencyContainer {
+    var apiManager: APIServiceProtocol { get }
+    var userRepository: UserRepositoryProtocol { get }
+}
+
+final class DIContainer: DependencyContainer {
     static let shared = DIContainer()
     
-    private init() {}
+    // MARK: - Services
+    let apiManager: APIServiceProtocol
     
-    // Services
-    lazy var apiManager: APIServiceProtocol = APIManager.shared
+    // MARK: - Repositories
+    private(set) var userRepository: UserRepositoryProtocol
     
-    // Repositories
-    lazy var userRepository: UserRepositoryProtocol = UserRepository(apiService: apiManager)
+    // MARK: - Initializer
+    private init(userRepository: UserRepositoryProtocol? = nil) {
+        // Initialize apiManager first
+        self.apiManager = APIManager.shared
+        
+        // Then initialize userRepository
+        self.userRepository = userRepository ?? UserRepository(apiService: self.apiManager)
+    }
     
-    // Add other repositories here as needed
+    // MARK: - For Testing
+    func setUserRepository(_ repository: UserRepositoryProtocol) {
+        self.userRepository = repository
+    }
 }

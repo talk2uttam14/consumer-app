@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class APIManager: APIServiceProtocol {
+actor APIManager: APIServiceProtocol {
 
     static let shared = APIManager()
     private init() {}
@@ -76,8 +76,9 @@ final class APIManager: APIServiceProtocol {
         guard NetworkMonitor.shared.isConnected else {
             throw NetworkErrorLogger.noInternetConnection
         }
-
-        let (data, response) = try await session.data(for: request)
+        try Task.checkCancellation()
+        let (data, response) = try await session.data(for: request, delegate: nil)
+        try Task.checkCancellation()
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkErrorLogger.invalidResponse
@@ -91,6 +92,7 @@ final class APIManager: APIServiceProtocol {
             return try await executeWithRetry(request: newRequest, retryCount: retryCount + 1)
         }
 
+        try Task.checkCancellation()
         try validate(httpResponse)
 
         guard !data.isEmpty else {
@@ -102,10 +104,11 @@ final class APIManager: APIServiceProtocol {
             NetworkLogger.printPrettyJson(jsonString)
         }
 
-        return try decode(data)
+        return try await decodeOnBackground(data)
     }
 
     // MARK: - Decode response
+    /// Decodes JSON data on background thread to avoid blocking main thread
     private func decode<T: Decodable>(_ data: Data) throws -> T {
         // Attempt to decode APIResponse wrapper first if expected
         if let wrapped = try? decoder.decode(APIResponse<T>.self, from: data) {
@@ -131,12 +134,29 @@ final class APIManager: APIServiceProtocol {
              throw NetworkErrorLogger.decodingError(error)
         }
     }
+    
+    // MARK: - Decode on Background Thread
+    /// For large payloads, decode on background thread explicitly
+    private func decodeOnBackground<T: Decodable>(_ data: Data) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let value: T = try self.decode(data)
+                    continuation.resume(returning: value)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
 
     // MARK: - Validate HTTP response
     private func validate(_ response: HTTPURLResponse) throws {
         switch response.statusCode {
         case 200...299: return
         case 401: throw NetworkErrorLogger.unauthorized
+        case 408: throw NetworkErrorLogger.timeout
         case 400...499: throw NetworkErrorLogger.clientError(code: response.statusCode)
         case 500...599: throw NetworkErrorLogger.serverError(code: response.statusCode)
         default: throw NetworkErrorLogger.invalidResponse
