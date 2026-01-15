@@ -11,12 +11,12 @@ import SwiftUI
 struct consumer_appApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self)
     var appDelegate
-    @StateObject private var appRouter = AppRouter.shared
+    @State private var appRouter = AppRouter.shared
 
     var body: some Scene {
         WindowGroup {
             RootRouterView()
-               .environmentObject(appRouter)
+               .environment(appRouter)
         }
     }
 }

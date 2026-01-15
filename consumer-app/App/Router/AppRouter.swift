@@ -5,26 +5,28 @@
 //  Created by UTTAM KUMAR DEY on 08/11/25.
 //
 import SwiftUI
+import Observation
 
 /// AppRouter is the brain of navigation.
 /// It stores which screen is currently open.
 @MainActor
-final class AppRouter: ObservableObject {
+@Observable
+public final class AppRouter {
 
     /// Stack-based navigation (push / pop)
-    @Published var path = NavigationPath()
+    public var path = NavigationPath()
 
     /// Sheet-based navigation (modal)
-    @Published var sheet: RouteSheet?
+    var sheet: RouteSheet?
 
-    /// Shared instance (OK for beginners)
-    static let shared = AppRouter()
+    /// Shared instance (OK for smaller apps, but DI preferred for larger)
+    public static let shared = AppRouter()
 
-    private init() {}
+    public init() {}
 }
 
 // MARK: - Navigation Actions
-extension AppRouter {
+ extension AppRouter {
 
     /// Push a new screen
     func push(_ route: AppRoute) {
@@ -52,7 +54,11 @@ extension AppRouter {
         sheet = nil
     }
 }
-struct RouteSheet: Identifiable {
-    let id = UUID()
-    let route: AppRoute
+ struct RouteSheet: Identifiable {
+     let id = UUID()
+     let route: AppRoute
+    
+     init(route: AppRoute) {
+        self.route = route
+    }
 }

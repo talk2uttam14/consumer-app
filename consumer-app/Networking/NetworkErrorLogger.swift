@@ -6,8 +6,8 @@
 //
 import Foundation
 
-enum NetworkErrorLogger: Error {
-    static let domain = "NetworkError"
+public enum NetworkErrorLogger: Error {
+    public static let domain = "NetworkError"
 
     case noInternetConnection
     case invalidURL
@@ -18,7 +18,7 @@ enum NetworkErrorLogger: Error {
     case noDataError
     case decodingError(Error)
 
-    var localizedDescription: String {
+    public var localizedDescription: String {
         switch self {
         case .noInternetConnection: return "No internet connection"
         case .invalidURL: return "Invalid URL"

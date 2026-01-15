@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum LogEvent: String {
+public enum LogEvent: String {
     case e = "[‼️] ERROR" // error // swiftlint:disable:this identifier_name
     case i = "[ℹ️] INFO" // info // swiftlint:disable:this identifier_name
     case d = "[💬] DEBUG" // debug // swiftlint:disable:this identifier_name
@@ -22,13 +22,13 @@ enum LogEvent: String {
 public class LogUtils {
     // 1. The date formatter
     static var dateFormat = "yyyy-MM-dd hh:mm:ssSSS"
-    static var dateFormatter: DateFormatter {
+    static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = dateFormat
         formatter.locale = Locale.current
         formatter.timeZone = TimeZone.current
         return formatter
-    }
+    }()
     /// Wrapping Swift.print() within DEBUG flag
     public class func print(_ object: Any) {
         /// Only allowing in DEBUG mode
@@ -84,7 +84,7 @@ public class LogUtils {
     }
 }
 // 2. The Date to String extension
-extension Date {
+public extension Date {
     func toString() -> String {
         return LogUtils.dateFormatter.string(from: self as Date)
     }

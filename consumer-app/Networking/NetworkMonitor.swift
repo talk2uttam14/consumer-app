@@ -6,20 +6,23 @@
 //
 
 import Network
-import Combine
-
-final class NetworkMonitor: ObservableObject {
-    static let shared = NetworkMonitor()
+import Observation
+@Observable
+public final class NetworkMonitor {
+    public static let shared = NetworkMonitor()
     private let pathMonitor = NWPathMonitor()
     private let monitorQueue = DispatchQueue(label: "NetworkMonitor.Queue")
-    @Published private(set) var isConnected:Bool = false
+    public var isConnected: Bool = false
 
-    func startMonitoring() {
+    private init() {}
+
+    public func startMonitoring() {
         pathMonitor.start(queue: monitorQueue)
         pathMonitor.pathUpdateHandler = { [weak self] path in
+            guard let self = self else { return }
             Task { @MainActor in
-                self?.isConnected = path.status == .satisfied
-                debugPrint("Network status: \(self?.isConnected ?? false ? "Connected" : "Disconnected")")
+                self.isConnected = path.status == .satisfied
+                debugPrint("Network status: \(self.isConnected ? "Connected" : "Disconnected")")
             }
         }
     }

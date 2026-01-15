@@ -6,13 +6,13 @@
 //
 import Foundation
 
-enum EnvironmentType {
+public enum EnvironmentType {
     case uat
     case prod
 }
-struct EnvironmentConstants {
-    static let currentEnvType: EnvironmentType = .uat
-    static var baseURLString: String {
+public struct EnvironmentConstants {
+    public static let currentEnvType: EnvironmentType = .uat
+    public static var baseURLString: String {
         switch currentEnvType {
         case .uat:
             // Replace with your actual UAT host
@@ -24,7 +24,7 @@ struct EnvironmentConstants {
     }
 
     /// A URL constructed from the current environment's base URL string.
-    static var baseURL: URL? {
+    public static var baseURL: URL? {
         return URL(string: baseURLString)
     }
 }

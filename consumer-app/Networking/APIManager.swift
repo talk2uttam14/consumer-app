@@ -1,15 +1,18 @@
 //
-//  APIClient.swift
+//  UserRepository.swift
 //  consumer-app
 //
-//  Created by UTTAM KUMAR DEY on 29/10/25.
+//  Created by UTTAM KUMAR DEY on 13/01/26.
 //
+
 import Foundation
 
-class APIManager {
+final class APIManager: APIServiceProtocol {
+
     static let shared = APIManager()
     private init() {}
-    private var session: URLSession = {
+
+    private let session: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
@@ -19,159 +22,124 @@ class APIManager {
         config.allowsConstrainedNetworkAccess = true
         return URLSession(configuration: config)
     }()
-    
-    func execute<T: Codable>(
-        requestModel: BaseRequestModel,
-        successCallback: @escaping (_ data: T) -> Void,
-        errorCallback: @escaping (_ error: Error) -> Void
-    ) {
-        
-        guard NetworkMonitor.shared.isConnected else {
-            DispatchQueue.main.async {
-                errorCallback(NetworkErrorLogger.noInternetConnection)
-            }
-            return
-        }        
-        guard let url = requestModel.url else {
-            DispatchQueue.main.async {
-                errorCallback(NetworkErrorLogger.invalidURL)
-            }
-            return
-        }
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = requestModel.method.rawValue
-        urlRequest.timeoutInterval = requestModel.timeoutInterval
-        urlRequest.allHTTPHeaderFields = requestModel.headers
-        
-        LogUtils.print("\(requestModel.method.rawValue) | URL: \(urlRequest.url?.absoluteString ?? "No URL")")
-        NetworkLogger.printPrettyHeaders(from: urlRequest)
-        
-        if let body = requestModel.body {
-            do {
-                let encodedBody = try JSONEncoder().encode(AnyEncodable(body))
-                urlRequest.httpBody = encodedBody
-                NetworkLogger.printPrettyJson(String(data: encodedBody, encoding: .utf8))
-            } catch {
-                DispatchQueue.main.async {
-                    errorCallback(NetworkErrorLogger.decodingError(error))
-                }
-                return
-            }
-        }
-        let task = session.dataTask(with: urlRequest) { data, response, error in
-            if let error = error {
-                if requestModel.retryCount < NetworkConstants.maxRetryCount {
-                    LogUtils.print("Retrying... Attempt \(requestModel.retryCount + 1)")
-                    let updatedModel = requestModel
-                    updatedModel.retryCount += 1
-                    self.execute(requestModel: updatedModel, successCallback: successCallback, errorCallback: errorCallback)
-                } else {
-                    DispatchQueue.main.async {
-                        errorCallback(error)
-                    }
-                }
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                DispatchQueue.main.async {
-                    errorCallback(NetworkErrorLogger.invalidResponse)
-                }
-                return
-            }
-            
-            do {
-                try self.validate(httpResponse)
-            } catch {
-                DispatchQueue.main.async {
-                    errorCallback(error)
-                }
-                return
-            }
-            
-            // Handle empty response
-            guard let data = data else {
-                DispatchQueue.main.async {
-                    errorCallback(NetworkErrorLogger.noDataError)
-                }
-                return
-            }
-            
-            LogUtils.print("Response Data:")
-            NetworkLogger.printPrettyJson(String(data: data, encoding: .utf8))
-            let decoder = JSONDecoder()
-            do {
-                /// Try decoding into APIResponse<T> (wrapped)
-                if let wrapped = try? decoder.decode(APIResponse<T>.self, from: data) {
-                    DispatchQueue.main.async {
-                        successCallback(wrapped.payload)
-                    }
-                    return
-                }
-                
-                /// Try decoding directly into T (unwrapped)
-                if let direct = try? decoder.decode(T.self, from: data) {
-                    DispatchQueue.main.async {
-                        successCallback(direct)
-                    }
-                    return
-                }
-                
-                if let error = try? decoder.decode(ErrorResponseModel.self, from: data) {
-                    DispatchQueue.main.async {
-                        errorCallback(NSError(
-                            domain: "",
-                            code: error.errorCode ?? -1,
-                            userInfo: [
-                                "errorCode": error.errorCode ?? -1,
-                                "success": error.success ?? false,
-                                "refreshToken": error.refreshToken ?? false,
-                                "message": error.message ?? String.empty,
-                            ]
-                        ))
-                    }
-                    return
-                }
-                
-                if let error = try? decoder.decode(APIResponse<ErrorResponseModel>.self, from: data) {
-                    DispatchQueue.main.async {
-                        errorCallback(NSError(
-                            domain: "",
-                            code: error.errorCode,
-                            userInfo: [
-                                "reason": error.payload.reason ?? String.empty,
-                                "errorCode": error.errorCode,
-                                "success": error.success,
-                                "refreshToken": error.refreshToken,
-                                "message": error.message
-                            ]
-                        ))
-                    }
-                    
-                    return
-                }
-                throw NSError(domain: "", code: -2, userInfo: [NSLocalizedDescriptionKey: "Unable to decode response"])
-            } catch {
-                LogUtils.e("Decoding error: \(error.localizedDescription)")
-                DispatchQueue.main.async {
-                    errorCallback(error as NSError)
-                }
-            }
-        }
-        task.resume()
+
+    private let decoder = JSONDecoder()
+    private let authenticator = Authenticator()
+    private lazy var interceptor = AuthInterceptor(authenticator: authenticator)
+
+    // MARK: - Public async request
+    func request<T: Decodable>(_ route: APIRoute) async throws -> T {
+        var urlRequest = try buildURLRequest(from: route.request)
+        urlRequest = try await interceptor.adapt(urlRequest)
+        return try await executeWithRetry(request: urlRequest)
     }
-    func validate(_ response: HTTPURLResponse) throws {
-        switch response.statusCode {
-        case 200...299:
-            return
-        case 401:
-            throw NetworkErrorLogger.unauthorized
-        case 400...499:
-            throw NetworkErrorLogger.clientError(code: response.statusCode)
-        case 500...599:
-            throw NetworkErrorLogger.serverError(code: response.statusCode)
-        default:
+
+    // MARK: - Build URLRequest
+    private func buildURLRequest(from apiRequest: APIRequest) throws -> URLRequest {
+        guard var components = URLComponents(string: EnvironmentConstants.baseURLString + apiRequest.path) else {
+            throw NetworkErrorLogger.invalidURL
+        }
+
+        if let query = apiRequest.query {
+            components.queryItems = query.map { URLQueryItem(name: $0.key, value: $0.value) }
+        }
+
+        guard let url = components.url else { throw NetworkErrorLogger.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = apiRequest.method.rawValue
+        request.timeoutInterval = apiRequest.timeout
+
+        if let body = apiRequest.body {
+            request.httpBody = try JSONEncoder().encode(AnyEncodable(body))
+        }
+
+        request.allHTTPHeaderFields = apiRequest.headers.merging(
+            BaseRequestModel().headers,
+            uniquingKeysWith: { $1 }
+        )
+
+        // Logging
+        LogUtils.print("\(apiRequest.method.rawValue) | Endpoint URL: \(url.absoluteString)")
+        NetworkLogger.printPrettyHeaders(from: request)
+        if let bodyData = request.httpBody, let bodyString = String(data: bodyData, encoding: .utf8) {
+            LogUtils.print("Request Body: -")
+            NetworkLogger.printPrettyJson(bodyString)
+        }
+
+        return request
+    }
+
+
+    // MARK: - Execute request with retry on 401
+    private func executeWithRetry<T: Decodable>(request: URLRequest, retryCount: Int = 0) async throws -> T {
+        guard NetworkMonitor.shared.isConnected else {
+            throw NetworkErrorLogger.noInternetConnection
+        }
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkErrorLogger.invalidResponse
+        }
+
+        // Retry if 401
+        if await interceptor.shouldRetry(response: httpResponse, data: data),
+           retryCount < 1 {
+            _ = try await authenticator.refreshTokenIfNeeded()
+            let newRequest = try await interceptor.adapt(request)
+            return try await executeWithRetry(request: newRequest, retryCount: retryCount + 1)
+        }
+
+        try validate(httpResponse)
+
+        guard !data.isEmpty else {
+            throw NetworkErrorLogger.noDataError
+        }
+
+        if let jsonString = String(data: data, encoding: .utf8) {
+            LogUtils.print("Response : -")
+            NetworkLogger.printPrettyJson(jsonString)
+        }
+
+        return try decode(data)
+    }
+
+    // MARK: - Decode response
+    private func decode<T: Decodable>(_ data: Data) throws -> T {
+        // Attempt to decode APIResponse wrapper first if expected
+        if let wrapped = try? decoder.decode(APIResponse<T>.self, from: data) {
+            return wrapped.payload
+        }
+        
+        // Attempt to decode Error Response
+        if let errorResp = try? decoder.decode(APIResponse<ErrorResponseModel>.self, from: data) {
+            throw NSError(
+                domain: "APIError",
+                code: errorResp.errorCode,
+                userInfo: [
+                    "reason": errorResp.payload.reason ?? "",
+                    "message": errorResp.message
+                ]
+            )
+        }
+
+        // Fallback to direct decoding or throw specific error
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+             throw NetworkErrorLogger.decodingError(error)
+        }
+    }
+
+    // MARK: - Validate HTTP response
+    private func validate(_ response: HTTPURLResponse) throws {
+        switch response.statusCode {
+        case 200...299: return
+        case 401: throw NetworkErrorLogger.unauthorized
+        case 400...499: throw NetworkErrorLogger.clientError(code: response.statusCode)
+        case 500...599: throw NetworkErrorLogger.serverError(code: response.statusCode)
+        default: throw NetworkErrorLogger.invalidResponse
         }
     }
 }

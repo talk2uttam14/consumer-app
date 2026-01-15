@@ -16,8 +16,8 @@ protocol Route: Hashable {}
 /// This enum decides which feature we are navigating to.
 enum AppRoute: Route {
     case home(HomeRoute)
-    case profile(ProfileRoute)
-    case login(LoginRoute)
+//    case profile(ProfileRoute)
+//    case login(LoginRoute)
 }
 
 enum HomeRoute: Route {

@@ -8,12 +8,12 @@
 import SwiftUI
 
 struct HomeView: View {
-    @EnvironmentObject
-    var appRouter: AppRouter
+    @Environment(AppRouter.self) var appRouter
+    @State var viewModel: HomeViewModel
     var body: some View {
         VStack {
             PrimaryButton(title: "Primary Button", action: {
-                dump(PrimaryButton.self)
+                viewModel.loadLanguages()
                 appRouter.pop()
             }, isLoading: false)
             .padding(30)

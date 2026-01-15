@@ -7,17 +7,18 @@
 import Foundation
 
 class BaseRequestModel {
-    var endPoint: String = String.empty
+    var endPoint: String = ""
     var timeoutInterval: Double = 30
     var method: HTTPMethod = .post
     var body: Encodable?
     var retryCount: Int = 0
     var requestParameters: [String: String]? = nil
     var additionalHeaders: [String: String] = [:]
+    
     var url: URL? {
         let baseUrl = EnvironmentConstants.baseURLString
         let trimmedEndpoint = endPoint.trimmingCharacters(in: .whitespacesAndNewlines)
-        var fullPath = String.empty
+        var fullPath = ""
         if trimmedEndpoint.lowercased().hasPrefix("http") {
             fullPath = trimmedEndpoint
         } else {
@@ -36,20 +37,19 @@ class BaseRequestModel {
         
         return URL(string: fullPath)
     }
+    
     private var baseHeaders: [String: String] {
         let headers: [String: String] =
         [
-            "Authorization": "Berer guiybgjhghjg",
-            "Content-Type": "application/json;charset=UTF-8",
-            "Referer": "https://lms-5x.mobilytix.net/"
+            "Content-Type": "application/json;charset=UTF-8"
         ]
-        return headers.filter { !$0.value.isEmpty }
+        return headers
     }
+    
     var headers: [String: String] {
         let combined = baseHeaders.merging(additionalHeaders) { _, new in new }
         return combined.filter { !$0.value.isEmpty }
     }
-    
 }
 
 /// Flexible Encoder for any Encodable type required in request body
@@ -62,8 +62,9 @@ struct AnyEncodable: Encodable {
         try encodeFunc(encoder)
     }
 }
+
 /// API Response Wrapper for generic payloads
-struct APIResponse<T: Codable>: Codable {
+struct APIResponse<T: Decodable>: Decodable {
     let errorCode: Int
     let success: Bool
     let refreshToken: Bool
@@ -78,6 +79,7 @@ struct ErrorResponseModel: Codable {
     let refreshToken: Bool?
     let message: String?
     let reason: String?
+    
     enum CodingKeys: String, CodingKey {
         case errorCode
         case success
@@ -85,6 +87,7 @@ struct ErrorResponseModel: Codable {
         case message
         case reason
     }
+    
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.errorCode = try container.decodeIfPresent(Int.self, forKey: .errorCode)

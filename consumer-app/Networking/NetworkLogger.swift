@@ -5,8 +5,8 @@
 //  Created by UTTAM KUMAR DEY on 29/10/25.
 //
 import Foundation
-final class NetworkLogger {
-     static func printPrettyJson(_ jsonString: String?) {
+public final class NetworkLogger {
+    public static func printPrettyJson(_ jsonString: String?) {
         if let jsonString = jsonString, let data = jsonString.data(using: .utf8) {
             do {
                 let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
@@ -15,15 +15,15 @@ final class NetworkLogger {
                     LogUtils.print(prettyString)
                 }
             } catch {
-                LogUtils.e("Error serializing JSON: \(error.localizedDescription)")
+                LogUtils.print("Error serializing JSON: \(error.localizedDescription)")
             }
         } else {
-            LogUtils.e("Failed to convert JSON string to Data.")
+            LogUtils.print("Failed to convert JSON string to Data.")
         }
     }
     /// Prints request headers in a pretty format
-     static func printPrettyHeaders(from request: URLRequest) {
-        LogUtils.print("Request Headers:")
+    public static func printPrettyHeaders(from request: URLRequest) {
+        LogUtils.print("Request Headers: -")
         if let headers = request.allHTTPHeaderFields {
             for (key, value) in headers {
                 LogUtils.print("\(key): \(value)")
