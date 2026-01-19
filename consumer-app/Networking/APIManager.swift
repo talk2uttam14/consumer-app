@@ -138,16 +138,10 @@ actor APIManager: APIServiceProtocol {
     // MARK: - Decode on Background Thread
     /// For large payloads, decode on background thread explicitly
     private func decodeOnBackground<T: Decodable>(_ data: Data) async throws -> T {
-        try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    let value: T = try self.decode(data)
-                    continuation.resume(returning: value)
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
+        try await Task.detached(priority: .userInitiated) {
+            let decoder = JSONDecoder()
+            return try decoder.decode(T.self, from: data)
+        }.value
     }
 
 

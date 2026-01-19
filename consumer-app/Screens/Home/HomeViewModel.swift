@@ -8,9 +8,8 @@ final class HomeViewModel {
     var mobileNumber: String = ""
     var pin: String = ""
     var isLoading: Bool = false
-    var errorMessage: String?
-    var language: GetLanguageResponse?
-
+    var language: HomeDataUiModel?
+    var error: AppError?
     private let repository: UserRepositoryProtocol
 
     init(repository: UserRepositoryProtocol? = nil) {
@@ -20,15 +19,27 @@ final class HomeViewModel {
     // MARK: - Load Languages
     func loadLanguages() async {
         isLoading = true
-        errorMessage = nil
+        defer { isLoading = false }  // ✅ automatically resets loading at the end
+
+        error = nil
+
         do {
             let result = try await repository.fetchLanguages()
-            self.language = result
-            self.isLoading = false
 
+            // ✅ Map API model → UI model safely
+            let innerData = (result.data ?? []).map { item in
+                HomeInnerDataUiModel(
+                    ans: item.ans ?? "",
+                    ques: item.ques ?? ""
+                )
+            }
+
+            self.language = HomeDataUiModel(data: innerData)
         } catch {
-            self.errorMessage = error.localizedDescription
-            self.isLoading = false
+            let appError = ErrorHandler.mapToAppError(error)
+            ErrorHandler.logError(appError)
+            self.error = appError
         }
     }
+
 }

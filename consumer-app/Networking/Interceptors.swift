@@ -82,7 +82,7 @@ public actor Authenticator {
         guard let refreshToken = try? storage.retrieve(key: refreshTokenKey) else {
             throw AppError.network(.unauthorized)
         }
-        
+        dump(refreshToken)
         // TODO: Implement actual API call to refresh token
         // For now, this is a placeholder
         // Example:
