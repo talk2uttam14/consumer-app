@@ -19,7 +19,7 @@ final class HomeViewModel {
     // MARK: - Load Languages
     func loadLanguages() async {
         isLoading = true
-        defer { isLoading = false }  // ✅ automatically resets loading at the end
+        defer { isLoading = false }
 
         error = nil
 
