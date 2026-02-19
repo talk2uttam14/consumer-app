@@ -15,14 +15,20 @@ struct RootRouterView: View {
     @State private var router = AppRouter.shared
     
     var body: some View {
+//        NavigationStack(path: $router.path) {
+//            HomeView(viewModel: HomeViewModel())
+//                .navigationDestination(for: AppRoute.self) { route in
+//                    destination(for: route)
+//                }
+//        }
+//        .sheet(item: $router.sheet) { sheet in
+//            destination(for: sheet.route)
+//        }
         NavigationStack(path: $router.path) {
-            HomeView(viewModel: HomeViewModel())
+            LoginMobileWithPinView(loginVM: LoginMobileWithPinViewModel())
                 .navigationDestination(for: AppRoute.self) { route in
                     destination(for: route)
                 }
-        }
-        .sheet(item: $router.sheet) { sheet in
-            destination(for: sheet.route)
         }
         .environment(router)
     }
@@ -31,9 +37,10 @@ struct RootRouterView: View {
     @ViewBuilder
     private func destination(for route: AppRoute) -> some View {
         switch route {
-            
         case .home(let homeRoute):
             homeDestination(homeRoute)
+        case .LoginRoute(let loginRoute):
+            LoginDestination(loginRoute)
         }
     }
         // MARK: - Feature Destinations
@@ -46,5 +53,14 @@ struct RootRouterView: View {
             }
         }
         
+    func LoginDestination(_ route: LoginRoute) -> some View {
+        switch route {
+        case .loginPinScreen:
+               LoginWithPinView(loginVM: LoginMobileWithPinViewModel())
+        case .loginWithMobileAndPin(mobile: let mobile, pin: let pin):
+            LoginWithPinView(loginVM: LoginMobileWithPinViewModel(isFirstTimeLogin: true))
+
+        }
+    }
     }
 
