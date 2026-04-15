@@ -174,3 +174,43 @@ extension AppError: LocalizedError {
         userMessage
     }
 }
+
+extension AppError {
+    init(error: Error) {
+        // Already AppError
+        if let appError = error as? AppError {
+            self = appError
+            return
+        }
+        
+        // NetworkError mapping
+        if let networkError = error as? NetworkError {
+            self = .network(networkError)
+            return
+        }
+        
+        // URLSession errors
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet:
+                self = .network(.noInternetConnection)
+            case .timedOut:
+                self = .network(.timeout)
+            case .userAuthenticationRequired:
+                self = .network(.unauthorized)
+            default:
+                self = .network(.serverError(urlError.errorCode))
+            }
+            return
+        }
+        
+        // Decoding errors
+        if error is DecodingError {
+            self = .network(.invalidResponse)
+            return
+        }
+        
+        // Fallback
+        self = .unknown(error.localizedDescription)
+    }
+}

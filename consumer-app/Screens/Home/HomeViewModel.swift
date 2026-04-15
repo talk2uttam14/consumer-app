@@ -24,7 +24,7 @@ final class HomeViewModel {
         error = nil
 
         do {
-            let result = try await repository.fetchLanguages()
+            let result = try await repository.fetchLanguages() // step 2:- Viewmodel calls Repository
 
             // ✅ Map API model → UI model safely
             let innerData = (result.data ?? []).map { item in

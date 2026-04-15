@@ -13,54 +13,53 @@ import SwiftUI
 struct RootRouterView: View {
     
     @State private var router = AppRouter.shared
+    @State private var loginVM = LoginMobileWithPinViewModel()
     
     var body: some View {
-//        NavigationStack(path: $router.path) {
-//            HomeView(viewModel: HomeViewModel())
-//                .navigationDestination(for: AppRoute.self) { route in
-//                    destination(for: route)
-//                }
-//        }
-//        .sheet(item: $router.sheet) { sheet in
-//            destination(for: sheet.route)
-//        }
         NavigationStack(path: $router.path) {
-            LoginMobileWithPinView(loginVM: LoginMobileWithPinViewModel())
-                .navigationDestination(for: AppRoute.self) { route in
-                    destination(for: route)
+            Group {
+                if loginVM.isFirstTimeLogin {
+                    LoginWithPinView(loginVM: loginVM)
+                } else {
+                    LoginWithPinView(loginVM: loginVM)
                 }
+            }
+            .navigationDestination(for: AppRoute.self) { route in
+                destination(for: route)
+            }
         }
         .environment(router)
     }
     
-    /// Converts a route into a screen (View)
     @ViewBuilder
     private func destination(for route: AppRoute) -> some View {
         switch route {
         case .home(let homeRoute):
             homeDestination(homeRoute)
         case .LoginRoute(let loginRoute):
-            LoginDestination(loginRoute)
+            loginDestination(loginRoute)
         }
     }
-        // MARK: - Feature Destinations
-        func homeDestination(_ route: HomeRoute) -> some View {
-            switch route {
-            case .home:
-                HomeView(viewModel: HomeViewModel())
-            case .dashboard:
-                HomeView(viewModel: HomeViewModel())
-            }
+
+    // MARK: - Home Destinations
+    @ViewBuilder
+    private func homeDestination(_ route: HomeRoute) -> some View {
+        switch route {
+        case .home:
+            HomeView(viewModel: HomeViewModel())
+        case .dashboard:
+            HomeView(viewModel: HomeViewModel())
         }
-        
-    func LoginDestination(_ route: LoginRoute) -> some View {
+    }
+
+    // MARK: - Login Destinations
+    @ViewBuilder
+    private func loginDestination(_ route: LoginRoute) -> some View {
         switch route {
         case .loginPinScreen:
-               LoginWithPinView(loginVM: LoginMobileWithPinViewModel())
-        case .loginWithMobileAndPin(mobile: let mobile, pin: let pin):
-            LoginWithPinView(loginVM: LoginMobileWithPinViewModel(isFirstTimeLogin: true))
-
+            LoginWithPinView(loginVM: loginVM)
+        case .loginWithMobileAndPin:
+            LoginMobileWithPinView(loginVM: loginVM)
         }
     }
-    }
-
+}

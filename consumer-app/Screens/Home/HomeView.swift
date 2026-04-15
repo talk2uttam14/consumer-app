@@ -15,7 +15,7 @@ struct HomeView: View {
         VStack {
             PrimaryButton(title: "Primary Button", action: {
             loadTask = Task {
-                    await viewModel.loadLanguages()
+                    await viewModel.loadLanguages() // step 1:- View calls viewmodel
                 }
 //                appRouter.pop()
             }, isLoading: viewModel.isLoading)

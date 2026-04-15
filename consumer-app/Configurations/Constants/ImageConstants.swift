@@ -7,6 +7,7 @@
 
 struct ImageConstants {
     static let loginBG = "login_bg"
+    static let globalPayLogo = "global_pay_logo"
 
 }
 

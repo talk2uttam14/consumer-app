@@ -21,7 +21,7 @@ final class DIContainer: DependencyContainer {
         self.apiManager = APIManager.shared
         
         // Then initialize userRepository
-        self.userRepository = userRepository ?? UserRepository(apiService: self.apiManager)
+        self.userRepository = userRepository ?? UserRepositoryImplementation(apiService: self.apiManager)
     }
     
     // MARK: - For Testing
