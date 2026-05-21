@@ -48,6 +48,10 @@ struct LoginWithPinView: View {
                             .cornerRadius(10)
                         }
                     }
+                    NavigationLink(destination: HomeView(viewModel: HomeViewModel())) {
+                        Text("Tap me")
+                    }
+
                 }
             }
         }
@@ -57,9 +61,12 @@ struct LoginWithPinView: View {
             await userTask
             await languageTask
         }
-        
+
     }
+
+
 }
+
 
 #Preview {
     LoginWithPinView(loginVM: LoginMobileWithPinViewModel())

@@ -42,8 +42,11 @@ struct LoginMobileWithPinView: View {
                 
         }
     }
+
+    
     
 }
+
 
 
 #Preview {
