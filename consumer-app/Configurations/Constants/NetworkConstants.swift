@@ -4,10 +4,9 @@
 //
 //  Created by UTTAM KUMAR DEY on 29/10/25.
 //
+import SwiftUI
 
-
-public struct NetworkConstants {
+public enum NetworkConstants {
     public static let maxRetryCount = 3
-    public static let baseUrl = "https://api.example.com"
     public static let tenantEndPoint = "/tenant"
 }

@@ -14,18 +14,17 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        print("✅ AppDelegate: didFinishLaunchingWithOptions called")
         NetworkMonitor.shared.startMonitoring()
         LogUtils.setLoggingEnabled(isEnabled: true)
         return true
     }
 
     func applicationDidEnterBackground(_ application: UIApplication) {
-        print("📱 AppDelegate: App moved to background")
+        //
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
-        print("🌅 AppDelegate: App will enter foreground")
+        //
     }
     // Example: Handling push notification registration
     func application(

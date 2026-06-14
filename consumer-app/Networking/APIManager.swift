@@ -73,7 +73,7 @@ actor APIManager: APIServiceProtocol {
 
     // MARK: - Execute request with retry on 401
     private func executeWithRetry<T: Decodable>(request: URLRequest, retryCount: Int = 0) async throws -> T {
-        guard NetworkMonitor.shared.isConnected else {
+        guard await NetworkMonitor.shared.isConnected else {
             throw NetworkErrorLogger.noInternetConnection
         }
         try Task.checkCancellation()

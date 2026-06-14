@@ -12,18 +12,16 @@ struct LoginWithPinView: View {
     
     var body: some View {
         ZStack {
-            Image(ImageConstants.loginBG)
+            Image(ImageConstants.loginBackground)
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
             ScrollView {
                 VStack {
                     Text("Login")
-                        .font(.largeTitle)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                        .font(FontConstants.size12(.semiBold))
+                        .foregroundStyle(ColorConstants.surfacePrimary)
                         .padding()
-                    
                     Text(loginVM.userData?.name ?? "Loading...")
                         .font(.largeTitle)
                         .fontWeight(.semibold)
@@ -32,7 +30,7 @@ struct LoginWithPinView: View {
                     Text(loginVM.userData?.bio ?? "Loading...")
                         .font(.largeTitle)
                         .fontWeight(.semibold)
-                        .foregroundColor(.white)
+                        .foregroundStyle(.white)
                         .padding()
                     if let language = loginVM.language {
                         ForEach(language.languageList) { item in

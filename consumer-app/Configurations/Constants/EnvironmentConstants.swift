@@ -6,7 +6,7 @@
 //
 import Foundation
 
-public enum EnvironmentType {
+public enum EnvironmentType: Sendable {
     case uat
     case prod
 }

@@ -13,7 +13,7 @@ struct LoginMobileWithPinView: View {
     @State var pin: String = ""
     var body: some View {
         ZStack {
-            Image(ImageConstants.loginBG)
+            Image(ImageConstants.loginBackground)
                 .resizable()
                 .scaledToFill()
                 .ignoresSafeArea()
