@@ -17,13 +17,7 @@ struct RootRouterView: View {
     
     var body: some View {
         NavigationStack(path: $router.path) {
-            Group {
-                if loginVM.isFirstTimeLogin {
-                    LoginWithPinView(loginVM: loginVM)
-                } else {
-                    LoginWithPinView(loginVM: loginVM)
-                }
-            }
+            LandingView()
             .navigationDestination(for: AppRoute.self) { route in
                 destination(for: route)
             }

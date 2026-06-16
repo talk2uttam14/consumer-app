@@ -31,8 +31,8 @@
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
-                        <color key="backgroundColor" name="Primary"/>
-                        <color key="tintColor" name="Primary"/>
+                        <color key="backgroundColor" name="SurfacePrimary"/>
+                        <color key="tintColor" name="SurfacePrimary"/>
                         <constraints>
                             <constraint firstItem="Bcu-3y-fUS" firstAttribute="centerX" secondItem="obG-Y5-kRd" secondAttribute="centerX" id="5cz-MP-9tL"/>
                             <constraint firstItem="CxG-tT-UQO" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="JY4-l6-c9t"/>
@@ -47,10 +47,11 @@
             <point key="canvasLocation" x="567" y="134"/>
         </scene>
     </scenes>
+    <color key="tintColor" name="SurfacePrimary"/>
     <resources>
         <image name="bm_logo_image" width="226" height="45"/>
-        <namedColor name="Primary">
-            <color red="0.0" green="0.10588235294117647" blue="0.36078431372549019" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        <namedColor name="SurfacePrimary">
+            <color red="0.0" green="0.10599999874830246" blue="0.36100000143051147" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
     </resources>
 </document>
