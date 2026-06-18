@@ -1,59 +1,30 @@
-//
-//  RootRouterView.swift
-//  consumer-app
-//
-//  Created by UTTAM KUMAR DEY on 08/11/25.
-//
-
-// MARK: - RootView.swift
 import SwiftUI
 
-/// RootRouterView owns NavigationStack.
-/// All navigation flows pass through here.
 struct RootRouterView: View {
-    
-    @State private var router = AppRouter.shared
-    @State private var loginVM = LoginMobileWithPinViewModel()
-    
-    var body: some View {
-        NavigationStack(path: $router.path) {
-            LandingView()
-            .navigationDestination(for: AppRoute.self) { route in
-                destination(for: route)
-            }
-        }
-        .environment(router)
-    }
-    
-    @ViewBuilder
-    private func destination(for route: AppRoute) -> some View {
-        switch route {
-        case .home(let homeRoute):
-            homeDestination(homeRoute)
-        case .LoginRoute(let loginRoute):
-            loginDestination(loginRoute)
-        }
-    }
+  @State private var router = AppRouter.shared
+  @State private var loginViewModel = LoginViewModel()
 
-    // MARK: - Home Destinations
-    @ViewBuilder
-    private func homeDestination(_ route: HomeRoute) -> some View {
-        switch route {
-        case .home:
-            HomeView(viewModel: HomeViewModel())
-        case .dashboard:
-            HomeView(viewModel: HomeViewModel())
-        }
+  var body: some View {
+    NavigationStack(path: $router.path) {
+      LandingView()
+        .navigationDestination(for: AppRoute.self, destination: destination)
     }
+    .environment(router)
+  }
 
-    // MARK: - Login Destinations
-    @ViewBuilder
-    private func loginDestination(_ route: LoginRoute) -> some View {
-        switch route {
-        case .loginPinScreen:
-            LoginWithPinView(loginVM: loginVM)
-        case .loginWithMobileAndPin:
-            LoginMobileWithPinView(loginVM: loginVM)
-        }
+  @ViewBuilder
+  private func destination(for route: AppRoute) -> some View {
+    switch route {
+    case .home(let homeRoute):
+      switch homeRoute {
+      case .home:
+        HomeView(viewModel: HomeViewModel())
+      }
+    case .login(let loginRoute):
+      switch loginRoute {
+      case .mobileAndPin:
+        LoginView(viewModel: loginViewModel)
+      }
     }
+  }
 }

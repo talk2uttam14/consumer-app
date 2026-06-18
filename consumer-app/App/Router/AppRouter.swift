@@ -1,14 +1,6 @@
-//
-//  AppRouter.swift
-//  consumer-app
-//
-//  Created by UTTAM KUMAR DEY on 08/11/25.
-//
 import SwiftUI
 import Observation
 
-/// AppRouter is the brain of navigation.
-/// It stores which screen is currently open.
 @MainActor
 @Observable
 public final class AppRouter {

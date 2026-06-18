@@ -1,126 +1,79 @@
-//
-//  PrimaryButton.swift
-//  consumer-app
-//
-//  Created by UTTAM KUMAR DEY on 09/01/26.
-//
-
 import SwiftUI
 
 struct PrimaryButton: View {
 
-    // MARK: - Inputs
-    let title: String
-    
-    var isLoading: Bool = false
-    var isDisabled: Bool = false
+  let title: String
+  var isLoading = false
+  var isDisabled = false
+  var variant: ButtonVariant = .primary
+  var height: CGFloat = 52
+  let action: () -> Void
 
-    var variant: ButtonVariant = .primary
-    
-    private var backgroundColor: Color {
-        variant.backgroundColor.opacity(
-            (isLoading || isDisabled) ? 0.6 : 1.0
-        )
-    }
+  private var backgroundColor: Color {
+    variant.backgroundColor.opacity(isLoading || isDisabled ? 0.6 : 1)
+  }
 
-    private var foregroundColor: Color {
-        variant.foregroundColor.opacity(
-            (isLoading || isDisabled) ? 0.8 : 1.0
-        )
-    }
+  private var foregroundColor: Color {
+    variant.foregroundColor.opacity(isLoading || isDisabled ? 0.8 : 1)
+  }
 
-    var padding: EdgeInsets = EdgeInsets(
-            top: 16,
-            leading: 16,
-            bottom: 16,
-            trailing: 16
-        )
+  var body: some View {
+    Button {
+      guard !isLoading, !isDisabled else { return }
+      UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+      action()
+    } label: {
+      ZStack {
+        Text(title)
+          .opacity(isLoading ? 0 : 1)
+          .font(FontConstants.size18(.semiBold))
 
-    // MARK: - Style Config
-    var height: CGFloat = 52
-    var cornerRadius: CGFloat = 12
-    let action: () -> Void
-
-    // MARK: - Body
-    var body: some View {
-        Button(action: {
-            guard !isLoading else { return }
-            UIImpactFeedbackGenerator(style: .medium)
-                .impactOccurred()
-            action()
-        })
-        {
-            ZStack {
-                Text(title)
-                    .opacity(isLoading ? 0 : 1)
-                    .font(FontConstants.size18(.semiBold))
-                if isLoading {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(foregroundColor)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .background(backgroundColor)
-            .foregroundColor(foregroundColor)
-            .clipShape(
-                RoundedRectangle(
-                    cornerRadius: cornerRadius,
-                    style: .continuous
-                )
-            )
-            .scaleEffect(1.0)
-            .animation(.easeInOut(duration: 0.15), value: isLoading || isDisabled)
+        if isLoading {
+          ProgressView()
+            .tint(foregroundColor)
         }
-        .disabled(isLoading || isDisabled)
-        .buttonStyle(PrimaryButtonPressStyle())
-        .accessibilityLabel(Text(title))
-        .padding(padding)
+      }
+      .frame(maxWidth: .infinity)
+      .frame(height: height)
+      .foregroundStyle(foregroundColor)
+      .background(backgroundColor)
+      .clipShape(RoundedRectangle(cornerRadius: RadiusConstants.md, style: .continuous))
     }
+    .disabled(isLoading || isDisabled)
+    .buttonStyle(PrimaryButtonPressStyle())
+    .accessibilityLabel(title)
+  }
 }
-struct PrimaryButtonPressStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.95 : 1)
-            .animation(.easeInOut(duration: 0.15),
-                       value: configuration.isPressed)
-    }
+
+private struct PrimaryButtonPressStyle: ButtonStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .scaleEffect(configuration.isPressed ? 0.97 : 1)
+      .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+  }
 }
-public enum ButtonVariant {
-    case primary
-    case secondary
-    case destructive
-    case warning
-    case success
 
-    var backgroundColor: Color {
-        switch self {
-        case .primary:
-            return ColorConstants.surfacePrimary
-        case .secondary:
-            return ColorConstants.secondary
-        case .destructive:
-            return ColorConstants.error
-        case .warning:
-            return ColorConstants.warning
-        case .success:
-            return ColorConstants.success
-        }
-    }
+enum ButtonVariant {
+  case primary
+  case secondary
+  case destructive
+  case warning
+  case success
 
-    var foregroundColor: Color {
-        switch self {
-        case .primary:
-            return ColorConstants.secondary
-        case .secondary:
-            return ColorConstants.surfacePrimary
-        case .destructive:
-            return ColorConstants.secondary
-        case .warning:
-            return ColorConstants.secondary
-        case .success:
-            return ColorConstants.secondary
-        }
+  var backgroundColor: Color {
+    switch self {
+    case .primary: ColorConstants.surfacePrimary
+    case .secondary: ColorConstants.secondary
+    case .destructive: ColorConstants.error
+    case .warning: ColorConstants.warning
+    case .success: ColorConstants.success
     }
+  }
+
+  var foregroundColor: Color {
+    switch self {
+    case .primary: ColorConstants.secondary
+    case .secondary, .destructive, .warning, .success: ColorConstants.surfacePrimary
+    }
+  }
 }

@@ -1,31 +1,34 @@
 import Foundation
 
-// MARK: - Dependency Container Protocol
 protocol DependencyContainer {
-    var apiManager: APIServiceProtocol { get }
-    var userRepository: UserRepositoryProtocol { get }
+  var apiManager: APIServiceProtocol { get }
+  var authenticator: Authenticator { get }
+  var userRepository: UserRepositoryProtocol { get }
 }
 
 final class DIContainer: DependencyContainer {
-    static let shared = DIContainer()
-    
-    // MARK: - Services
-    let apiManager: APIServiceProtocol
-    
-    // MARK: - Repositories
-    private(set) var userRepository: UserRepositoryProtocol
-    
-    // MARK: - Initializer
-    private init(userRepository: UserRepositoryProtocol? = nil) {
-        // Initialize apiManager first
-        self.apiManager = APIManager.shared
-        
-        // Then initialize userRepository
-        self.userRepository = userRepository ?? UserRepositoryImplementation(apiService: self.apiManager)
-    }
-    
-    // MARK: - For Testing
-    func setUserRepository(_ repository: UserRepositoryProtocol) {
-        self.userRepository = repository
-    }
+
+  static let shared = DIContainer()
+
+  let authenticator: Authenticator
+  let apiManager: APIServiceProtocol
+  private(set) var userRepository: UserRepositoryProtocol
+
+  private init(userRepository: UserRepositoryProtocol? = nil) {
+    let authenticator = Authenticator()
+    let manager = APIManager(authenticator: authenticator)
+
+    self.authenticator = authenticator
+    self.apiManager = manager
+    self.userRepository = userRepository ?? UserRepositoryImplementation(
+      apiService: manager,
+      authenticator: authenticator
+    )
+
+    Task { await manager.configureTokenRefresh() }
+  }
+
+  func setUserRepository(_ repository: UserRepositoryProtocol) {
+    userRepository = repository
+  }
 }

@@ -14,10 +14,12 @@ public enum EndpointConstants {
         public static let wallets = "/wallets"
         public static let transactions = "/transactions"
         public static let getLanguages = "mobiquitypay/faq/consumer/en"
+        public static let masterParameters = "api/v1/app/master/parameters"
     }
 
     public enum postEndpoints {
         public static let login = "/auth/login"
+        public static let refreshToken = "/auth/refresh"
         public static let transfer = "/wallet/transfer"
         public static let updateProfile = "/user/update"
     }

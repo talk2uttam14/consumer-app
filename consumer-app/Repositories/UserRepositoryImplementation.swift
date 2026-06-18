@@ -1,33 +1,58 @@
 //
-//  UserRepository.swift
+//  UserRepositoryImplementation.swift
 //  consumer-app
 //
-//  Created by UTTAM KUMAR DEY on 13/01/26.
-//
-
 
 import Foundation
 
 final class UserRepositoryImplementation: UserRepositoryProtocol {
-    private let apiService: APIServiceProtocol
 
-    init(apiService: APIServiceProtocol) {
-        self.apiService = apiService
-    }
-    
-    // MARK: - Fetch Languages (GET)
-    func fetchLanguages() async throws -> GetLanguageResponse {
-        try await apiService.request(.get(path: EndpointConstants.getEndpoints.getLanguages))
-    }
-}
+  private let apiService: APIServiceProtocol
+  private let authenticator: Authenticator
+  private let sessionManager: SessionManaging
 
-final class MockUserRepositoryImplementation: UserRepositoryProtocol {
-    func fetchLanguages() async throws -> GetLanguageResponse {
-        return GetLanguageResponse(
-            data: [
-                InnerData(ans: "A1", ques: "Q1"),
-                InnerData(ans: "A2", ques: "Q2")
-            ]
-        )
+  init(
+    apiService: APIServiceProtocol,
+    authenticator: Authenticator,
+    sessionManager: SessionManaging = SessionManager.shared
+  ) {
+    self.apiService = apiService
+    self.authenticator = authenticator
+    self.sessionManager = sessionManager
+  }
+
+  func fetchHomeLanguages() async throws -> HomeDataUIModel {
+    let response: GetLanguageResponse = try await apiService.request(LanguagesAPI())
+    return response.toHomeDataUIModel()
+  }
+
+  func fetchTenantParameters(term: String) async throws -> [TenantIdDataUIModel] {
+    let response: TenantIdListResponse = try await apiService.request(TenantListAPI(term: term))
+    return response.toUiModels()
+  }
+
+  func saveSelectedTenant(_ tenant: TenantIdDataUIModel) throws {
+    try sessionManager.saveSelectedTenant(tenant)
+  }
+
+  func getSelectedTenantId() -> String? {
+    sessionManager.getSelectedTenantId()
+  }
+
+  func login(mobile: String, pin: String) async throws {
+    let response: LoginResponse = try await apiService.request(
+      LoginAPI(mobile: mobile, pin: pin)
+    )
+
+    guard let accessToken = response.payload?.accessToken, !accessToken.isEmpty else {
+      throw AppError.unknown(response.message)
     }
+
+    try await authenticator.saveLoginSession(
+      accessToken: accessToken,
+      refreshToken: response.payload?.refreshToken,
+      mobile: mobile
+    )
+    try sessionManager.saveUserMobile(mobile)
+  }
 }

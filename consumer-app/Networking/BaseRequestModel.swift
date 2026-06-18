@@ -1,100 +1,64 @@
-//
-//  BaseRequestModel.swift
-//  consumer-app
-//
-//  Created by UTTAM KUMAR DEY on 30/10/25.
-//
 import Foundation
 
 class BaseRequestModel {
-    var endPoint: String = ""
-    var timeoutInterval: Double = 30
-    var method: HTTPMethod = .post
-    var body: Encodable?
-    var retryCount: Int = 0
-    var requestParameters: [String: String]? = nil
-    var additionalHeaders: [String: String] = [:]
-    
-    var url: URL? {
-        let baseUrl = EnvironmentConstants.baseURLString
-        let trimmedEndpoint = endPoint.trimmingCharacters(in: .whitespacesAndNewlines)
-        var fullPath = ""
-        if trimmedEndpoint.lowercased().hasPrefix("http") {
-            fullPath = trimmedEndpoint
-        } else {
-            let slash = (baseUrl.hasSuffix("/") || trimmedEndpoint.hasPrefix("/")) ? "" : "/"
-            fullPath = baseUrl + slash + trimmedEndpoint
-        }
-        let urlComponents = URLComponents(string: fullPath)
-        var queryItems = urlComponents?.queryItems ?? []
 
-        if let params = requestParameters, !params.isEmpty {
-            for (key, value) in params where !value.isEmpty {
-                queryItems.append(URLQueryItem(name: key, value: value))
-            }
-            return urlComponents?.url
-        }
-        
-        return URL(string: fullPath)
+  var endPoint: String = String.empty
+  var method: HTTPMethod = .post
+  var requestParams: [String: String]?
+  var body: Codable?
+  var retryCount: Int = 0
+  var secured: Bool = true
+  var timeoutInterval: TimeInterval = NetworkConstants.requestTimeout
+  var skipTokenRefresh: Bool = false
+  var additionalHeaders: [String: String] = [:]
+
+  init() {}
+
+  private var baseHeaders: [String: String] {
+    [
+      "Content-Type": "application/json;charset=UTF-8",
+      "Referer": NetworkConstants.referer
+    ]
+  }
+
+  var headers: [String: String] {
+    baseHeaders
+      .merging(additionalHeaders) { _, new in new }
+      .filter { !$0.value.isEmpty }
+  }
+
+  var url: URL? {
+    let baseUrl = NetworkConstants.baseUrl
+    let trimmedEndpoint = endPoint.trimmingCharacters(in: .whitespacesAndNewlines)
+    let fullPath: String
+
+    if trimmedEndpoint.lowercased().hasPrefix("http") {
+      fullPath = trimmedEndpoint
+    } else {
+      let slash = (baseUrl.hasSuffix("/") || trimmedEndpoint.hasPrefix("/")) ? "" : "/"
+      fullPath = baseUrl + slash + trimmedEndpoint
     }
-    
-    private var baseHeaders: [String: String] {
-        let headers: [String: String] =
-        [
-            "Content-Type": "application/json;charset=UTF-8"
-        ]
-        return headers
+
+    guard var urlComponents = URLComponents(string: fullPath) else {
+      return URL(string: fullPath)
     }
-    
-    var headers: [String: String] {
-        let combined = baseHeaders.merging(additionalHeaders) { _, new in new }
-        return combined.filter { !$0.value.isEmpty }
+
+    var queryItems = urlComponents.queryItems ?? []
+
+    if let params = requestParams, !params.isEmpty {
+      for (key, value) in params where !value.isEmpty {
+        queryItems.append(URLQueryItem(name: key, value: value))
+      }
     }
+
+    if NetworkConstants.supportLanguageQuery.contains(endPoint) {
+      queryItems.append(URLQueryItem(name: "language", value: SessionManager.shared.getLanguage()))
+    }
+
+    if !queryItems.isEmpty {
+      urlComponents.queryItems = queryItems
+    }
+
+    return urlComponents.url ?? URL(string: fullPath)
+  }
 }
-
-/// Flexible Encoder for any Encodable type required in request body
-struct AnyEncodable: Encodable {
-    private let encodeFunc: (Encoder) throws -> Void
-    init<T: Encodable>(_ value: T) {
-        self.encodeFunc = value.encode
-    }
-    func encode(to encoder: Encoder) throws {
-        try encodeFunc(encoder)
-    }
-}
-
-/// API Response Wrapper for generic payloads
-struct APIResponse<T: Decodable>: Decodable {
-    let errorCode: Int
-    let success: Bool
-    let refreshToken: Bool
-    let message: String
-    let payload: T
-}
-
-/// common error response model for structured API errors
-struct ErrorResponseModel: Codable {
-    let errorCode: Int?
-    let success: Bool?
-    let refreshToken: Bool?
-    let message: String?
-    let reason: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case errorCode
-        case success
-        case refreshToken
-        case message
-        case reason
-    }
-    
-    init(from decoder: any Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.errorCode = try container.decodeIfPresent(Int.self, forKey: .errorCode)
-        self.success = try container.decodeIfPresent(Bool.self, forKey: .success)
-        self.refreshToken = try container.decodeIfPresent(Bool.self, forKey: .refreshToken)
-        self.message = try container.decodeIfPresent(String.self, forKey: .message)
-        self.reason = try container.decodeIfPresent(String.self, forKey: .reason)
-    }
-}
-

@@ -7,19 +7,23 @@
 import Foundation
 
 public enum EnvironmentType: Sendable {
+    case dev
     case uat
     case prod
+    case mock
 }
 public struct EnvironmentConstants {
-    public static let currentEnvType: EnvironmentType = .uat
+    public static let currentEnvType: EnvironmentType = .mock
     public static var baseURLString: String {
         switch currentEnvType {
+        case .dev:
+            return "https://bm-retail-baseline.comviva.com/"
         case .uat:
-            // Replace with your actual UAT host
             return "https://uat.globalpay.om/"
         case .prod:
-            // Replace with your actual Production host
-            return "https://api.example.com"
+            return "https://api.example.com/"
+        case .mock:
+            return "http://172.20.1.51:8080/api/host/bluemarble/"
         }
     }
 

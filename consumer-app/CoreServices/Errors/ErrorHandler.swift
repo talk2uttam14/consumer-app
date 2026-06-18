@@ -138,18 +138,7 @@ final class ErrorHandler {
     // MARK: - Log Error
     /// Logs error if it should be logged based on severity
     static func logError(_ appError: AppError) {
-        guard appError.shouldLog else { return }
-        
-        let logMessage = """
-        ❌ Error Occurred:
-        Code: \(appError.errorCode)
-        Severity: \(appError.severity)
-        Message: \(appError.userMessage)
-        """
-        
-        LogUtils.print(logMessage)
-        
-        // In production, send to analytics/crash reporting
-        // Analytics.logError(appError.errorCode, message: appError.userMessage)
-    }
+    guard appError.shouldLog else { return }
+    LogUtils.print("Error [\(appError.errorCode)]: \(appError.userMessage)")
+  }
 }
