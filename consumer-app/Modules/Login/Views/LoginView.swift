@@ -1,64 +1,87 @@
 import SwiftUI
 
 struct LoginView: View {
-  @Bindable var viewModel: LoginViewModel
-  @Environment(AppRouter.self) private var router
+    @State private var form = PrimaryTextFieldForm()
+    @State private var isChecked = true
+    @State private var isTenantFocused = false
+    @State private var showTenantScreen = false
+    @Environment(AppRouter.self) private var router
+    @Bindable var viewModel: LoginViewModel
 
-  var body: some View {
-    ZStack {
-      Image(ImageConstants.loginBackground)
-        .resizable()
-        .scaledToFill()
-        .ignoresSafeArea()
+    var body: some View {
+      VStack {
+        Spacer().frame(height: isTenantFocused ? 20 : nil)
 
-      ScrollView {
-        VStack(spacing: SpacingConstants.xl) {
-          Image(ImageConstants.launchLogo)
-            .resizable()
-            .scaledToFit()
-            .frame(height: 72)
-            .padding(.top, SpacingConstants.xl)
+        Image(ImageConstants.launchLogo)
+          .resizable()
+          .scaledToFit()
+          .frame(width: isTenantFocused ? 200 : 250, height: isTenantFocused ? 100 : 70)
+          .animation(.easeInOut(duration: 0.25), value: isTenantFocused)
 
-          VStack(spacing: SpacingConstants.xs) {
-            Text("Sign in")
-              .font(FontConstants.size24(.bold))
-              .foregroundStyle(ColorConstants.surfacePrimary)
-            Text("Enter your mobile number and PIN")
-              .font(FontConstants.size14(.regular))
-              .foregroundStyle(ColorConstants.surfacePrimary.opacity(0.85))
+        Spacer().frame(height: isTenantFocused ? 20 : nil)
+
+        VStack(alignment: .leading, spacing: 20) {
+          HStack {
+            Spacer()
+            Text("Log in")
+              .font(FontConstants.size18(.medium))
+              .foregroundStyle(ColorConstants.primary)
+            Spacer()
           }
 
-          VStack(spacing: SpacingConstants.lg) {
-            AppTextField(
-              label: "Mobile number",
-              text: $viewModel.mobile,
-              keyboardType: .phonePad
-            )
-            AppTextField(label: "PIN", text: $viewModel.pin, isSecure: true)
-          }
-
-          PrimaryButton(
-            title: "Continue",
-            isLoading: viewModel.isLoading,
-            action: { Task { await viewModel.login() } }
+          PrimaryTextField(
+            key: "userid",
+            form: form,
+            placeholder: "User ID",
+            regex: "^[A-Za-z0-9 _-]{3,30}$",
+            errorMessage: "Enter a valid user ID",
+            keyboardType: .asciiCapable,
+            textInputAutocapitalization: .never,
+            autocorrectionDisabled: true,
+            leftIcon: "person.fill",
+            leftIconColor: ColorConstants.primary
           )
-          .padding(.top, SpacingConstants.sm)
+            PrimaryTextField(
+              key: "password",
+              form: form,
+              placeholder: "Password",
+              regex: "^[A-Za-z0-9 _-]{3,30}$",
+              errorMessage: "Enter a valid password",
+              isSecure: true,
+              keyboardType: .asciiCapable,
+              textInputAutocapitalization: .never,
+              autocorrectionDisabled: true,
+              leftIcon: "lock.fill",
+              leftIconColor: ColorConstants.primary
+            )
+            HStack {
+                Spacer()
+                Text("Forgot Passowrd ?")
+                    .font(FontConstants.size16(.medium))
+                    .foregroundStyle(ColorConstants.surfacePrimary)
+            }
+
+          PrimaryButton(title: "Continue", isDisabled: !isChecked) {
+            print(form["tenantId"])
+              showTenantScreen = true
+          }
+          .padding(.bottom, 25)
         }
-        .padding(.horizontal, SpacingConstants.xl)
-        .padding(.bottom, SpacingConstants.xl)
+        .padding(24)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .shadow(radius: 10)
       }
-    }
-    .navigationBarTitleDisplayMode(.inline)
-    .onChange(of: viewModel.isLoggedIn) { _, loggedIn in
-      guard loggedIn else { return }
-      router.popToRoot()
-      router.push(.home(.home))
-    }
-    .errorAlert(error: $viewModel.error) {
-      Task { await viewModel.login() }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(ColorConstants.surfacePrimary)
+      .ignoresSafeArea()
+      .navigationBarBackButtonHidden()
+      .task { form["tenantId"] = "SND Tenant" }
+      .navigationDestination(isPresented: $showTenantScreen) {
+                  PrimaryTextFieldShowcaseView()
+              }
     }
   }
-}
 
 #Preview {
   NavigationStack {

@@ -35,7 +35,7 @@ struct LandingView: View {
         variant: .secondary,
         action: {
 //          viewModel.handleLoginTapped {
-            router.push(.login(.mobileAndPin))
+            router.push(.tenatID)
 //          }
         }
       )
@@ -46,9 +46,6 @@ struct LandingView: View {
     .background(ColorConstants.surfacePrimary.ignoresSafeArea())
     .task {
 //      await viewModel.loadTenantParameters()
-    }
-    .errorAlert(error: $viewModel.error) {
-      Task { await viewModel.loadTenantParameters() }
     }
   }
 

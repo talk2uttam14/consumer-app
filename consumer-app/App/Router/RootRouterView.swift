@@ -2,7 +2,6 @@ import SwiftUI
 
 struct RootRouterView: View {
   @State private var router = AppRouter.shared
-  @State private var loginViewModel = LoginViewModel()
 
   var body: some View {
     NavigationStack(path: $router.path) {
@@ -20,11 +19,10 @@ struct RootRouterView: View {
       case .home:
         HomeView(viewModel: HomeViewModel())
       }
-    case .login(let loginRoute):
-      switch loginRoute {
-      case .mobileAndPin:
-        LoginView(viewModel: loginViewModel)
-      }
+    case .login:
+        LoginView(viewModel: LoginViewModel())
+    case .tenatID:
+        TenantID()
     }
   }
 }

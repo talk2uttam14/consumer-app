@@ -41,8 +41,6 @@ struct HomeView: View {
     .task {
       await viewModel.loadLanguages()
     }
-    .errorAlert(error: $viewModel.error) {
-      Task { await viewModel.loadLanguages() }
-    }
+    
   }
 }

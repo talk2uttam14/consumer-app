@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import IQKeyboardManagerSwift
+import IQKeyboardToolbarManager
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     
@@ -16,6 +18,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         NetworkMonitor.shared.startMonitoring()
         LogUtils.setLoggingEnabled(isEnabled: true)
+        IQKeyboardManager.shared.isEnabled = true
+        IQKeyboardManager.shared.resignOnTouchOutside = true
+        IQKeyboardToolbarManager.shared.isEnabled = false
+        IQKeyboardManager.shared.keyboardDistance = 140
         return true
     }
 
